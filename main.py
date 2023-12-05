@@ -29,13 +29,14 @@ class Weather(Model):
     max_temp = db.Column(db.Float)
     icon = db.Column(db.String)
 
-# my_bot = ChatBot(
-#     name="PyBot",
-#     read_only=True,
-#     logic_adapters=["chatterbot.logic.BestMatch"]
-# )
-# my_bot.storage.drop()
+my_bot = ChatBot(
+    name="PyBot",
+    read_only=True,
+    logic_adapters=["chatterbot.logic.BestMatch"]
+)
+my_bot.storage.drop()
 
+list_trainer = ListTrainer(my_bot)
 
 def load_location_data():
     try:
@@ -46,46 +47,42 @@ def load_location_data():
         locations = cur.fetchall()
         cur.close()
         for location in locations:
-            pass
+            prepare_todays_weather_response(location[1])
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
-
-def weather_recommendation(min_temp, wea_desc):
+def prepare_todays_weather_response(loc):
+    forecast_record = session.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).first()
     clothes_recommendation = ''
-    if min_temp < 5:
+    if forecast_record.min_temp < 5:
         clothes_recommendation += "I would recommend wearing warm layers and bringing a jumper with you."
-    elif min_temp < 10:
+    elif forecast_record.min_temp < 10:
         clothes_recommendation += "I would recommend bringing a jumper with you."
     else:
         pass
 
-    if 'rain' in wea_desc:
+    if 'rain' in forecast_record.description:
         clothes_recommendation += " It might be a good idea to take an umbrella with you as rain is forecast."
     else:
         pass
 
-    return clothes_recommendation
+    forecast_response = ("The temperate in " + loc + " today will be a maximum of "
+                         + str(forecast_record.max_temp) + " with a low of "
+                         + str(forecast_record.min_temp) + ". Expect " + forecast_record.description
+                         + ". " + clothes_recommendation)
 
-# print(weather_recommendation(11,'sd'))
+    current_weather = [
+        "What is the weather today in " + loc,
+        forecast_response,
+    ]
+    list_trainer.train(current_weather)
 
-small_talk = [
-    "Hello there John",
-    f"Hi there! The number is 5",
-    "How are you doing?",
-    "I'm doing great.",
-    "That is good to hear",
-    "Thank you.",
-    "You're welcome."
-]
-#
-# list_trainer = ListTrainer(my_bot)
-# list_trainer.train(small_talk)
-#
-# while True:
-#     try:
-#         bot_input = input("You: ")
-#         bot_response = my_bot.get_response(bot_input)
-#         print(f"{my_bot.name}: {bot_response}")
-#     except(KeyboardInterrupt, EOFError, SystemExit):
-#         break
+load_location_data()
+
+while True:
+    try:
+        bot_input = input("You: ")
+        bot_response = my_bot.get_response(bot_input)
+        print(f"{my_bot.name}: {bot_response}")
+    except(KeyboardInterrupt, EOFError, SystemExit):
+        break
