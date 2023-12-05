@@ -6,6 +6,8 @@ chatterbot-corpus==1.2.0
 click==8.1.7
 cymem==2.0.8
 Flask==2.2.5
+flask-sqlalchemy==3.0.5
+greenlet==3.0.1
 idna==3.6
 importlib-metadata==6.7.0
 itsdangerous==2.1.2

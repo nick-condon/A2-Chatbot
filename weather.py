@@ -2,6 +2,7 @@ import requests
 import constants
 from datetime import datetime
 import sqlite3
+import multiprocessing
 
 
 # Function to delete all records in a table
@@ -66,10 +67,19 @@ def update_all_weather_forecasts():
         cur.execute(sql_locations_query)
         locations = cur.fetchall()
         cur.close()
+        processes = []
         for location in locations:
-            get_weather_forecast(location)
+            p = multiprocessing.Process(target=get_weather_forecast, args=(location,))
+            processes.append(p)
+            p.start()
+            # get_weather_forecast(location)
+        for process in processes:
+            process.join()
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
+if __name__ == '__main__':
+    update_all_weather_forecasts()
 
-update_all_weather_forecasts()
+
+
