@@ -50,8 +50,9 @@ go_travel_bot = ChatBot(
             'default_response': 'I am sorry. I do not understand. You can ask me questions like:'
             + '<br>What is the weather today in Oxford?'
             + '<br>What is the best restaurant in Cambridge?'
-            + '<br>Which city has the best weather this week?',
-            'maximum_similarity_threashold': 0.90
+            + '<br>Which city has the best weather this week?'
+            + '<br>What is the 7 day forecast for Bristol?',
+            'maximum_similarity_threshold': 0.70
         }
     ]
 )
@@ -103,6 +104,11 @@ def prepare_todays_weather_response(loc):
     current_weather = [
         "What is the weather today in " + loc,
         forecast_response,
+        "Can you tell me the weather today for " + loc,
+        forecast_response,
+        "Weather for " + loc,
+        forecast_response,
+        loc + " weather please"
     ]
     list_trainer.train(current_weather)
     session_weather.close()
@@ -117,6 +123,12 @@ def prepare_best_weather():
                              + " the " + best_weather_record.date + ".")
     best_weather = [
         "Which city has the best weather this week?",
+        best_weather_response,
+        "Where is the best weather this week?",
+        best_weather_response,
+        "When is the best weather this week",
+        best_weather_response,
+        "When and where are the best weather this week?",
         best_weather_response
     ]
     list_trainer.train(best_weather)
@@ -131,6 +143,10 @@ def prepare_best_restaurant_response(loc):
                            + restaurant_record.place_id + '">link</a>')
     best_rest = [
         "What is the best restaurant in " + loc,
+        restaurant_response,
+        "Where can I eat in " + loc,
+        restaurant_response,
+        "Best place to eat in " + loc,
         restaurant_response
     ]
     list_trainer.train(best_rest)
@@ -155,6 +171,10 @@ def weekly_forecast_response(loc):
                     + table_data + '</table>')
     forecast_list = [
         "What is the forecast for " + loc,
+        table_string,
+        "What is the forecast for this week for " + loc,
+        table_string,
+        "What is the 7 day forecast for " + loc,
         table_string
     ]
     list_trainer.train(forecast_list)
