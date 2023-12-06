@@ -74,6 +74,7 @@ def load_location_data():
         for location in locations:
             prepare_todays_weather_response(location[1])
             prepare_best_restaurant_response(location[1])
+            weekly_forecast_response(location[1])
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
@@ -135,6 +136,29 @@ def prepare_best_restaurant_response(loc):
     list_trainer.train(best_rest)
     session_restaurant.close()
 
+
+def weekly_forecast_response(loc):
+    session_forecast = Session()
+    forecast = session_forecast.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).all()
+    forecast_iter = iter(forecast)
+    table_data = ''
+    while True:
+        try:
+            day = next(forecast_iter)
+            table_data += ('<tr><td>'
+                           + day.day + '</td><td>' + day.date + '</td><td>' + day.description + '</td><td>'
+                           + str(day.min_temp) + '</td><td>' + str(day.max_temp) + '</td></tr>')
+        except StopIteration:
+            break
+    table_string = ('Here is the forecast for ' + loc + ':<br><h2>' + loc + ' Forecast</h2>'
+                    + '<table><tr><th>Day</th><th>Date</th><th>Conditions</th><th>Min Temp</th><th>Max Temp</th></tr>'
+                    + table_data + '</table>')
+    forecast_list = [
+        "What is the forecast for " + loc,
+        table_string
+    ]
+    list_trainer.train(forecast_list)
+    session_forecast.close()
 
 # Update all weather data then load all responses into the chatbot
 update_all_weather_forecasts()
