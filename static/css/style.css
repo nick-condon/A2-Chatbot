@@ -22,6 +22,7 @@ h3 {
     margin-right: auto;
     width: 40%;
     margin-top: 60px;
+    background-color: E0E0E7;
 }
 
 #userInput {
@@ -68,7 +69,7 @@ h3 {
 }
 
 .botText span {
-    background-color:rgb(77, 204, 77);
+    background-color:rgb(224, 224, 231);
     padding: 10px;
     border-radius: 2px;
 }

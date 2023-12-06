@@ -43,7 +43,17 @@ class Restaurant(Model):
 go_travel_bot = ChatBot(
     name="GoTravelBot",
     read_only=True,
-    logic_adapters=["chatterbot.logic.BestMatch"]
+    # logic_adapters=["chatterbot.logic.BestMatch"]
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'I am sorry. I do not understand. You can ask me questions like:'
+            + '<br>What is the weather today in Oxford?'
+            + '<br>What is the best restaurant in Cambridge?'
+            + '<br>Which city has the best weather this week?',
+            'maximum_similarity_threashold': 0.90
+        }
+    ]
 )
 # Clear database for chatbot so that we can update the data in the weather responses
 go_travel_bot.storage.drop()
