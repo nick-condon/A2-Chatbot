@@ -17,6 +17,9 @@ Model.metadata.create_all(bind=engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
+# Standard code block to run Flask.
+app = Flask(__name__)
+
 
 class Weather(Model):
     __tablename__ = 'weather'
@@ -34,6 +37,7 @@ my_bot = ChatBot(
     read_only=True,
     logic_adapters=["chatterbot.logic.BestMatch"]
 )
+# Clear database for chatbot so that we can update the data in the weather responses
 my_bot.storage.drop()
 
 list_trainer = ListTrainer(my_bot)
@@ -79,10 +83,15 @@ def prepare_todays_weather_response(loc):
 
 load_location_data()
 
-while True:
-    try:
-        bot_input = input("You: ")
-        bot_response = my_bot.get_response(bot_input)
-        print(f"{my_bot.name}: {bot_response}")
-    except(KeyboardInterrupt, EOFError, SystemExit):
-        break
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/get")
+def get_bot_response():
+    user_text = request.args.get('msg')
+    bot_response = my_bot.get_response(user_text).text
+    return str(bot_response)
+
+if __name__ == "__main__":
+    app.run()
