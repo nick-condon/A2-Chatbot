@@ -1,4 +1,3 @@
-import sqlalchemy.orm
 from flask import *
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
@@ -11,12 +10,9 @@ from weather import update_all_weather_forecasts
 
 db_name = r'tourism.db'
 Model = declarative_base()
-table_name = 'weather'
-
 engine = db.create_engine('sqlite:///' + db_name)
 Model.metadata.create_all(bind=engine)
 Session = sessionmaker(bind=engine)
-session = Session()
 
 # Standard code block to run Flask.
 app = Flask(__name__)
@@ -27,11 +23,13 @@ class Weather(Model):
     id = db.Column(db.Integer, primary_key=True)
     location = db.Column(db.String)
     date = db.Column(db.String)
+    day = db.Column(db.String)
     weather_main = db.Column(db.String)
     description = db.Column(db.String)
     min_temp = db.Column(db.Float)
     max_temp = db.Column(db.Float)
     icon = db.Column(db.String)
+
 
 class Restaurant(Model):
     __tablename__ = 'restaurants'
@@ -40,6 +38,7 @@ class Restaurant(Model):
     name = db.Column(db.String)
     rating = db.Column(db.Float)
     place_id = db.Column(db.String)
+
 
 go_travel_bot = ChatBot(
     name="GoTravelBot",
@@ -53,13 +52,15 @@ list_trainer = ListTrainer(go_travel_bot)
 
 
 def load_location_data():
+    prepare_best_weather()
     try:
-        connection = sqlite3.connect('tourism.db')
+        connection = sqlite3.connect('tourism.db', check_same_thread=False)
         cur = connection.cursor()
         sql_locations_query = """SELECT * FROM places"""
         cur.execute(sql_locations_query)
         locations = cur.fetchall()
         cur.close()
+        connection.close()
         for location in locations:
             prepare_todays_weather_response(location[1])
             prepare_best_restaurant_response(location[1])
@@ -68,7 +69,8 @@ def load_location_data():
 
 
 def prepare_todays_weather_response(loc):
-    forecast_record = session.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).first()
+    session_weather = Session()
+    forecast_record = session_weather.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).first()
     clothes_recommendation = ''
     if forecast_record.min_temp < 5:
         clothes_recommendation += "I would recommend wearing warm layers and bringing a jumper with you."
@@ -92,23 +94,40 @@ def prepare_todays_weather_response(loc):
         forecast_response,
     ]
     list_trainer.train(current_weather)
+    session_weather.close()
 
+
+def prepare_best_weather():
+    session_best = Session()
+    best_weather_record = session_best.query(Weather).order_by(Weather.max_temp.desc()).first()
+    best_weather_response = ("The city with the best weather this week is "
+                             + best_weather_record.location + ". The maximum temperature will be "
+                             + str(best_weather_record.max_temp) + "&degC on " + best_weather_record.day
+                             + " the " + best_weather_record.date + ".")
+    best_weather = [
+        "Which city has the best weather this week?",
+        best_weather_response
+    ]
+    list_trainer.train(best_weather)
 
 def prepare_best_restaurant_response(loc):
-    restaurant_record = session.query(Restaurant).filter_by(location=loc).order_by(Restaurant.rating.desc()).first()
+    session_restaurant = Session()
+    restaurant_record = session_restaurant.query(Restaurant).filter_by(location=loc).order_by(Restaurant.rating.desc()).first()
     restaurant_response = ("The best restaurant in " + loc + ", according to Google, is "
                            + restaurant_record.name + ". It has a rating of "
                            + str(restaurant_record.rating) + " stars. Here is the link if you are interested: "
-                           + "https://www.google.com/maps/search/?api=1&query=Google&query_place_id="
-                           + restaurant_record.place_id)
+                           + '<a href="https://www.google.com/maps/search/?api=1&query=Google&query_place_id='
+                           + restaurant_record.place_id + '">link</a>')
     best_rest = [
         "What is the best restaurant in " + loc,
         restaurant_response
     ]
     list_trainer.train(best_rest)
+    session_restaurant.close()
+
 
 # Update all weather data then load all responses into the chatbot
-# update_all_weather_forecasts()
+update_all_weather_forecasts()
 load_location_data()
 
 
@@ -126,4 +145,3 @@ def get_bot_response():
 
 if __name__ == "__main__":
     app.run()
-

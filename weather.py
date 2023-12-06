@@ -67,6 +67,7 @@ def update_all_weather_forecasts():
         cur.execute(sql_locations_query)
         locations = cur.fetchall()
         cur.close()
+        connection.close()
         processes = []
         for location in locations:
             p = multiprocessing.Process(target=get_weather_forecast, args=(location,))
