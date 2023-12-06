@@ -33,6 +33,13 @@ class Weather(Model):
     max_temp = db.Column(db.Float)
     icon = db.Column(db.String)
 
+class Restaurant(Model):
+    __tablename__ = 'restaurants'
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.String)
+    name = db.Column(db.String)
+    rating = db.Column(db.Float)
+    place_id = db.Column(db.String)
 
 go_travel_bot = ChatBot(
     name="GoTravelBot",
@@ -55,6 +62,7 @@ def load_location_data():
         cur.close()
         for location in locations:
             prepare_todays_weather_response(location[1])
+            prepare_best_restaurant_response(location[1])
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
@@ -85,6 +93,20 @@ def prepare_todays_weather_response(loc):
     ]
     list_trainer.train(current_weather)
 
+
+def prepare_best_restaurant_response(loc):
+    restaurant_record = session.query(Restaurant).filter_by(location=loc).order_by(Restaurant.rating.desc()).first()
+    restaurant_response = ("The best restaurant in " + loc + ", according to Google, is "
+                           + restaurant_record.name + ". It has a rating of "
+                           + str(restaurant_record.rating) + " stars. Here is the link if you are interested: "
+                           + "https://www.google.com/maps/search/?api=1&query=Google&query_place_id="
+                           + restaurant_record.place_id)
+    best_rest = [
+        "What is the best restaurant in " + loc,
+        restaurant_response
+    ]
+    list_trainer.train(best_rest)
+
 # Update all weather data then load all responses into the chatbot
 # update_all_weather_forecasts()
 load_location_data()
@@ -104,3 +126,4 @@ def get_bot_response():
 
 if __name__ == "__main__":
     app.run()
+
