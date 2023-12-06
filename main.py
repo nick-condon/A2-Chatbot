@@ -6,6 +6,7 @@ import sqlite3
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
 from sqlalchemy.ext.declarative import declarative_base
+from weather import update_all_weather_forecasts
 
 
 db_name = r'tourism.db'
@@ -32,15 +33,17 @@ class Weather(Model):
     max_temp = db.Column(db.Float)
     icon = db.Column(db.String)
 
-my_bot = ChatBot(
-    name="PyBot",
+
+go_travel_bot = ChatBot(
+    name="GoTravelBot",
     read_only=True,
     logic_adapters=["chatterbot.logic.BestMatch"]
 )
 # Clear database for chatbot so that we can update the data in the weather responses
-my_bot.storage.drop()
+go_travel_bot.storage.drop()
 
-list_trainer = ListTrainer(my_bot)
+list_trainer = ListTrainer(go_travel_bot)
+
 
 def load_location_data():
     try:
@@ -54,6 +57,7 @@ def load_location_data():
             prepare_todays_weather_response(location[1])
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
+
 
 def prepare_todays_weather_response(loc):
     forecast_record = session.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).first()
@@ -70,9 +74,9 @@ def prepare_todays_weather_response(loc):
     else:
         pass
 
-    forecast_response = ("The temperate in " + loc + " today will be a maximum of "
-                         + str(forecast_record.max_temp) + " with a low of "
-                         + str(forecast_record.min_temp) + ". Expect " + forecast_record.description
+    forecast_response = ("The temperature in " + loc + " today will be a maximum of "
+                         + str(forecast_record.max_temp) + "&degC with a low of "
+                         + str(forecast_record.min_temp) + "&degC. Expect " + forecast_record.description
                          + ". " + clothes_recommendation)
 
     current_weather = [
@@ -81,17 +85,22 @@ def prepare_todays_weather_response(loc):
     ]
     list_trainer.train(current_weather)
 
+# Update all weather data then load all responses into the chatbot
+# update_all_weather_forecasts()
 load_location_data()
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 @app.route("/get")
 def get_bot_response():
     user_text = request.args.get('msg')
-    bot_response = my_bot.get_response(user_text).text
+    bot_response = go_travel_bot.get_response(user_text).text
     return str(bot_response)
+
 
 if __name__ == "__main__":
     app.run()
