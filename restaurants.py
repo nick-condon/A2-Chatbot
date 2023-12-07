@@ -14,6 +14,8 @@ google_places_base_url = "https://maps.googleapis.com/maps/api/place/nearbysearc
 # base URL for locating a point of interest
 google_places_location_base_url = "https://www.google.com/maps/search/?api=1&query=Google&query_place_id="
 
+
+# Grabs all locations from the database and calls the function to get restaurant information on each
 def load_restaurants():
     try:
         connection = sqlite3.connect('tourism.db')
@@ -27,6 +29,8 @@ def load_restaurants():
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
+
+# Fetches restaurant details for a location from Google API and inserts into database
 def get_restaurants(location, latitude, longitude):
     resp = requests.get(google_places_base_url
                         + "location="
@@ -58,6 +62,7 @@ def get_restaurants(location, latitude, longitude):
             except KeyError as e:
                 pass
 
+            # Insert data into a tuple in preparation for database insertion
             data = (
                 None,
                 location,
@@ -65,10 +70,12 @@ def get_restaurants(location, latitude, longitude):
                 rating,
                 place_id
             )
+            # Add restaurant to list
             restaurant_list.append(data)
         except StopIteration:
             break
 
+    # Connect to database and update the table for restaurants
     connection = sqlite3.connect('tourism.db')
     cursor = connection.cursor()
     cursor.executemany(

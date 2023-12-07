@@ -51,6 +51,7 @@ def get_weather_forecast(location_array):
             weatherforecast.append(data)
         except StopIteration:
             break
+    # Insert weather data into SQL table
     connection = sqlite3.connect('tourism.db')
     cursor = connection.cursor()
     cursor.executemany('INSERT INTO weather (id, location, date, day, weather_main, description, min_temp, max_temp, icon) VALUES (?,?,?,?,?,?,?,?,?)', weatherforecast)
@@ -59,8 +60,10 @@ def get_weather_forecast(location_array):
 
 
 def update_all_weather_forecasts():
+    # Clear the data out of the weather table in preparation for update
     clear_database_table('tourism.db', 'weather')
     try:
+        # Connect to database and get all the locations
         connection = sqlite3.connect('tourism.db')
         cur = connection.cursor()
         sql_locations_query = """SELECT * FROM places"""
@@ -69,18 +72,18 @@ def update_all_weather_forecasts():
         cur.close()
         connection.close()
         processes = []
+        # Loop through the locations and fetch the weather data
         for location in locations:
+            # Use multiprocessing to speed up the API calls
             p = multiprocessing.Process(target=get_weather_forecast, args=(location,))
             processes.append(p)
             p.start()
-            # get_weather_forecast(location)
+        # Bring the processes back together
         for process in processes:
             process.join()
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
+
 if __name__ == '__main__':
     update_all_weather_forecasts()
-
-
-

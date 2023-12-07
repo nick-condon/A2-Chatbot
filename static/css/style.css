@@ -73,7 +73,7 @@ table, td, tr {
     padding: 1rem
 }
 
-.botText span {
+.botText {
     background-color:rgb(224, 224, 231);
     padding: 10px;
     border-radius: 1.125rem 1.125rem 1.125rem 0;

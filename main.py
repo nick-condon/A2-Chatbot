@@ -40,10 +40,12 @@ class Restaurant(Model):
     place_id = db.Column(db.String)
 
 
+# Chatbot instance with default response
+# Requires threshold of 0.90 otherwise it mixes up the responses
+# e.g 'What is the weather today in Oxford?' is similar to 'What is the weather today in Cambridge?'
 go_travel_bot = ChatBot(
     name="GoTravelBot",
     read_only=True,
-    # logic_adapters=["chatterbot.logic.BestMatch"]
     logic_adapters=[
         {
             'import_path': 'chatterbot.logic.BestMatch',
@@ -58,10 +60,11 @@ go_travel_bot = ChatBot(
 )
 # Clear database for chatbot so that we can update the data in the weather responses
 go_travel_bot.storage.drop()
-
 list_trainer = ListTrainer(go_travel_bot)
 
 
+# Fetches locations from the database and calls a number of functions to use the data
+# from the database to train the chatbot
 def load_location_data():
     prepare_best_weather()
     try:
@@ -80,6 +83,8 @@ def load_location_data():
         print("Failed to read data from sqlite table", error)
 
 
+# Fetches today's weather data for a location from the database and uses list trainer to
+# train chatbot with questions and answers
 def prepare_todays_weather_response(loc):
     session_weather = Session()
     forecast_record = session_weather.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).first()
@@ -114,6 +119,8 @@ def prepare_todays_weather_response(loc):
     session_weather.close()
 
 
+# Fetches weather data from the database and ascertains which location has the best weather then uses list trainer to
+# train chatbot with questions and answers
 def prepare_best_weather():
     session_best = Session()
     best_weather_record = session_best.query(Weather).order_by(Weather.max_temp.desc()).first()
@@ -129,6 +136,8 @@ def prepare_best_weather():
                             ])
 
 
+# Fetches data on the best restaurant in an area from the database and uses list trainer to
+# train chatbot with questions and answers
 def prepare_best_restaurant_response(loc):
     session_restaurant = Session()
     restaurant_record = (session_restaurant.query(Restaurant).filter_by(location=loc)
@@ -150,6 +159,8 @@ def prepare_best_restaurant_response(loc):
     session_restaurant.close()
 
 
+# Fetches 7-day forecast weather data for a location from the database and uses list trainer to
+# train chatbot with questions and answers
 def weekly_forecast_response(loc):
     session_forecast = Session()
     forecast = session_forecast.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).all()
