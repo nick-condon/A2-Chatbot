@@ -25,8 +25,8 @@ h3 {
     background-color: E0E0E7;
 }
 
-table {
-    background-color: E0E0E7;
+table, td, tr {
+    border: 1px solid;
 }
 
 #userInput {
@@ -53,6 +53,7 @@ table {
     font-size: 17px;
     text-align: right;
     line-height: 30px;
+    padding: 1rem;
 }
 
 .userText span {
@@ -66,9 +67,16 @@ table {
     font-size: 17px;
     text-align: left;
     line-height: 30px;
+    padding: 1rem;
 }
 
 .botText span {
+    background-color:rgb(224, 224, 231);
+    padding: 10px;
+    border-radius: 1.125rem 1.125rem 1.125rem 0;
+}
+
+.botText div {
     background-color:rgb(224, 224, 231);
     padding: 10px;
     border-radius: 1.125rem 1.125rem 1.125rem 0;

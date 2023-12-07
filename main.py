@@ -121,21 +121,18 @@ def prepare_best_weather():
                              + best_weather_record.location + ". The maximum temperature will be "
                              + str(best_weather_record.max_temp) + "&degC on " + best_weather_record.day
                              + " the " + best_weather_record.date + ".")
-    best_weather = [
-        "Which city has the best weather this week?",
-        best_weather_response,
-        "Where is the best weather this week?",
-        best_weather_response,
-        "When is the best weather this week",
-        best_weather_response,
-        "When and where are the best weather this week?",
-        best_weather_response
-    ]
-    list_trainer.train(best_weather)
+    questions = ("Which city has the best weather this week?", "Where is the best weather this week?",
+                 "When is the best weather this week?", "When and where are the best weather this week?")
+    for question in questions:
+        list_trainer.train([question,
+                            best_weather_response
+                            ])
+
 
 def prepare_best_restaurant_response(loc):
     session_restaurant = Session()
-    restaurant_record = session_restaurant.query(Restaurant).filter_by(location=loc).order_by(Restaurant.rating.desc()).first()
+    restaurant_record = (session_restaurant.query(Restaurant).filter_by(location=loc)
+                         .order_by(Restaurant.rating.desc()).first())
     restaurant_response = ("The best restaurant in " + loc + ", according to Google, is "
                            + restaurant_record.name + ". It has a rating of "
                            + str(restaurant_record.rating) + " stars. Here is the link if you are interested: "
@@ -163,12 +160,13 @@ def weekly_forecast_response(loc):
             day = next(forecast_iter)
             table_data += ('<tr><td>'
                            + day.day + '</td><td>' + day.date + '</td><td>' + day.description + '</td><td>'
-                           + str(day.min_temp) + '</td><td>' + str(day.max_temp) + '</td></tr>')
+                           + str(day.min_temp) + '&degC' + '</td><td>' + str(day.max_temp) + '&degC'
+                           + '</td></tr>')
         except StopIteration:
             break
-    table_string = ('Here is the forecast for ' + loc + ':<br><h2>' + loc + ' Forecast</h2>'
+    table_string = ('<div>Here is the forecast for ' + loc + ':<br><h2>' + loc + ' Forecast</h2>'
                     + '<table><tr><th>Day</th><th>Date</th><th>Conditions</th><th>Min Temp</th><th>Max Temp</th></tr>'
-                    + table_data + '</table>')
+                    + table_data + '</table></div>')
     forecast_list = [
         "What is the forecast for " + loc,
         table_string,
@@ -179,6 +177,7 @@ def weekly_forecast_response(loc):
     ]
     list_trainer.train(forecast_list)
     session_forecast.close()
+
 
 # Update all weather data then load all responses into the chatbot
 update_all_weather_forecasts()
