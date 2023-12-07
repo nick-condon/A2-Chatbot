@@ -10,7 +10,7 @@ from weather import update_all_weather_forecasts
 
 db_name = r'tourism.db'
 Model = declarative_base()
-engine = db.create_engine('sqlite:///' + db_name)
+engine = db.create_engine('sqlite:///' + db_name + '?check_same_thread=False')
 Model.metadata.create_all(bind=engine)
 Session = sessionmaker(bind=engine)
 
@@ -52,7 +52,7 @@ go_travel_bot = ChatBot(
             + '<br>What is the best restaurant in Cambridge?'
             + '<br>Which city has the best weather this week?'
             + '<br>What is the 7 day forecast for Bristol?',
-            'maximum_similarity_threshold': 0.70
+            'maximum_similarity_threshold': 0.90
         }
     ]
 )

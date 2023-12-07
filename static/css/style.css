@@ -60,6 +60,9 @@ table, td, tr {
     background-color: #009688;
     padding: 10px;
     border-radius: 1.125rem 1.125rem 0 1.125rem;
+    box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
+    -webkit-box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
+    -moz-box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
 }
 
 .botText {
@@ -67,13 +70,16 @@ table, td, tr {
     font-size: 17px;
     text-align: left;
     line-height: 30px;
-    padding: 1rem;
+    padding: 1rem
 }
 
 .botText span {
     background-color:rgb(224, 224, 231);
     padding: 10px;
     border-radius: 1.125rem 1.125rem 1.125rem 0;
+    box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
+    -webkit-box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
+    -moz-box-shadow: 8px 7px 5px 0px rgba(0,0,0,0.09);
 }
 
 .botText div {
