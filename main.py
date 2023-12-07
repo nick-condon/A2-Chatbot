@@ -41,8 +41,7 @@ class Restaurant(Model):
 
 
 # Chatbot instance with default response
-# Requires threshold of 0.90 otherwise it mixes up the responses
-# e.g 'What is the weather today in Oxford?' is similar to 'What is the weather today in Cambridge?'
+# Requires threshold of 0.90 otherwise it mixes up the responses (testing has shown this)
 go_travel_bot = ChatBot(
     name="GoTravelBot",
     read_only=True,
@@ -54,7 +53,7 @@ go_travel_bot = ChatBot(
             + '<br>What is the best restaurant in Cambridge?'
             + '<br>Which city has the best weather this week?'
             + '<br>What is the 7 day forecast for Bristol?',
-            'maximum_similarity_threshold': 0.90
+            'maximum_similarity_threshold': 0.95
         }
     ]
 )
@@ -106,16 +105,13 @@ def prepare_todays_weather_response(loc):
                          + str(forecast_record.min_temp) + "&degC. Expect " + forecast_record.description
                          + ". " + clothes_recommendation)
 
-    current_weather = [
-        "What is the weather today in " + loc,
-        forecast_response,
-        "Can you tell me the weather today for " + loc,
-        forecast_response,
-        "Weather for " + loc,
-        forecast_response,
-        loc + " weather please"
-    ]
-    list_trainer.train(current_weather)
+    questions = ("What is the weather today in " + loc,"Can you tell me the weather today for " + loc,
+        "Weather for " + loc, loc + " weather please", "Weather today in " + loc, "Weather " + loc,
+        "Weather today " + loc)
+    for question in questions:
+        list_trainer.train([question,
+                            forecast_response
+                            ])
     session_weather.close()
 
 
@@ -129,7 +125,8 @@ def prepare_best_weather():
                              + str(best_weather_record.max_temp) + "&degC on " + best_weather_record.day
                              + " the " + best_weather_record.date + ".")
     questions = ("Which city has the best weather this week?", "Where is the best weather this week?",
-                 "When is the best weather this week?", "When and where are the best weather this week?")
+                 "When is the best weather this week?", "When and where are the best weather this week?",
+                 "Best weather")
     for question in questions:
         list_trainer.train([question,
                             best_weather_response
@@ -153,6 +150,8 @@ def prepare_best_restaurant_response(loc):
         "Where can I eat in " + loc,
         restaurant_response,
         "Best place to eat in " + loc,
+        restaurant_response,
+        "Restaurant " + loc,
         restaurant_response
     ]
     list_trainer.train(best_rest)
@@ -184,6 +183,8 @@ def weekly_forecast_response(loc):
         "What is the forecast for this week for " + loc,
         table_string,
         "What is the 7 day forecast for " + loc,
+        table_string,
+        "Weather forecast " + loc,
         table_string
     ]
     list_trainer.train(forecast_list)
