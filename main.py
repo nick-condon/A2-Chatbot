@@ -53,7 +53,7 @@ go_travel_bot = ChatBot(
             + '<br>What is the best restaurant in Cambridge?'
             + '<br>Which city has the best weather this week?'
             + '<br>What is the 7 day forecast for Bristol?',
-            'maximum_similarity_threshold': 0.95
+            'maximum_similarity_threshold': 0.90
         }
     ]
 )
@@ -65,7 +65,7 @@ list_trainer = ListTrainer(go_travel_bot)
 # Fetches locations from the database and calls a number of functions to use the data
 # from the database to train the chatbot
 def load_location_data():
-    prepare_best_weather()
+    prepare_best_weather_response()
     try:
         connection = sqlite3.connect('tourism.db', check_same_thread=False)
         cur = connection.cursor()
@@ -77,7 +77,7 @@ def load_location_data():
         for location in locations:
             prepare_todays_weather_response(location[1])
             prepare_best_restaurant_response(location[1])
-            weekly_forecast_response(location[1])
+            prepare_weekly_forecast_response(location[1])
     except sqlite3.Error as error:
         print("Failed to read data from sqlite table", error)
 
@@ -117,7 +117,7 @@ def prepare_todays_weather_response(loc):
 
 # Fetches weather data from the database and ascertains which location has the best weather then uses list trainer to
 # train chatbot with questions and answers
-def prepare_best_weather():
+def prepare_best_weather_response():
     session_best = Session()
     best_weather_record = session_best.query(Weather).order_by(Weather.max_temp.desc()).first()
     best_weather_response = ("The city with the best weather this week is "
@@ -160,7 +160,7 @@ def prepare_best_restaurant_response(loc):
 
 # Fetches 7-day forecast weather data for a location from the database and uses list trainer to
 # train chatbot with questions and answers
-def weekly_forecast_response(loc):
+def prepare_weekly_forecast_response(loc):
     session_forecast = Session()
     forecast = session_forecast.query(Weather).filter_by(location=loc).order_by(Weather.date.asc()).all()
     forecast_iter = iter(forecast)
